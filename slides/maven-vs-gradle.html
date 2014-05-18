@@ -1,0 +1,172 @@
+<section data-background-size="6% 90%"
+         data-background-transition="slide" data-background-position="0% 25%" class="future" hidden="" style="display: block;">
+<pre style="height: 700px; margin-top: -50px !important;"><code class="java" style="height: 700px; max-height: 700px !important;" >buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+    }
+}
+
+apply plugin: 'android'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+        }
+    }
+}
+
+dependencies {
+    ..
+}
+</code></pre>
+</section>
+
+<section data-background-size="6% 90%"
+         data-background-transition="slide" data-background-position="0% 25%" class="future" hidden="" style="display: block;">
+<pre style="height: 700px; margin-top: -50px !important;"><code class="java" style="height: 700px; max-height: 700px !important;" ><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>fr.devfest.marseille</groupId>
+    <artifactId>Devfest</artifactId>
+    <version>1.0.0.0</version>
+    <packaging>apk</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        ...
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+        <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
+
+        <plugins>
+
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <extensions>true</extensions>
+
+                <configuration>
+                    <!-- <sdk> <platform>16</platform> </sdk> -->
+
+                    <sdk>
+                        <path>${env.ANDROID_HOME}</path>
+                        <!-- <platform>2.2</platform> -->
+                        <platform>17</platform>
+                    </sdk>
+
+
+                    <dex>
+                        <jvmArguments>
+                            <argument>-Xms512m</argument>
+                            <argument>-Xmx1024m</argument>
+                        </jvmArguments>
+                    </dex>
+
+                </configuration>
+                <executions>
+                    <!-- <execution> <id>startEmulator</id> <phase>initialize</phase> <goals>
+                        <goal>emulator-start</goal> </goals> </execution> -->
+                    <execution>
+                        <id>alignApk</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>zipalign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jarsigner-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>signing</id>
+                        <goals>
+                            <goal>sign</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <removeExistingSignatures>true</removeExistingSignatures>
+                            <archiveDirectory />
+                            <includes>
+                                <include>${project.build.directory}/${project.artifactId}-${project.version}.apk</include>
+                            </includes>
+                            ...
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- the signed apk then needs to be zipaligned -->
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>maven-android-plugin</artifactId>
+
+                <inherited>true</inherited>
+                <configuration>
+                    <sign>
+                        <debug>false</debug>
+                    </sign>
+                    <zipalign>
+                        <verbose>true</verbose>
+                        <inputApk>${project.build.directory}/${project.artifactId}-${project.version}.apk</inputApk>
+                        <outputApk>${project.build.directory}/${project.artifactId}-${project.version}-signed-aligned.apk
+                        </outputApk>
+                    </zipalign>
+                    <skip>false</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>alignApk</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>zipalign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <android.debuggable>false</android.debuggable>
+                <android.release>true</android.release>
+            </properties>
+        </profile>
+    </profiles>
+</project></code></pre>
+</section>
